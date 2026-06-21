@@ -1,12 +1,9 @@
 package ru.practicum.shareit.item.comment.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.common.validation.OnCreate;
 import ru.practicum.shareit.item.comment.client.CommentClient;
 import ru.practicum.shareit.item.comment.model.dto.CommentRequest;
