@@ -8,7 +8,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User; // Убедись, что путь к User правильный
+import ru.practicum.shareit.user.model.User;
 
 @Entity
 @Getter

@@ -1,8 +1,10 @@
 package ru.practicum.shareit.user.model.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class UserResponse {
     private Long id;
     private String name;

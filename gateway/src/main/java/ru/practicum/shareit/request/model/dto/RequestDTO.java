@@ -2,10 +2,12 @@ package ru.practicum.shareit.request.model.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import ru.practicum.shareit.common.validation.OnCreate;
 
-@Data
+@Getter
+@Setter
 public class RequestDTO {
 
     @NotBlank(groups = OnCreate.class,

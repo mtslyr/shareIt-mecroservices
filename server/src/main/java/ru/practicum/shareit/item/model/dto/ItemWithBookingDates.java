@@ -1,12 +1,14 @@
 package ru.practicum.shareit.item.model.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import ru.practicum.shareit.item.comment.model.dto.CommentResponse;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 
-@Data
+@Getter
+@Setter
 public class ItemWithBookingDates {
     private Long id;
     private String name;

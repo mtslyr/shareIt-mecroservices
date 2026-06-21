@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.common.serializing.DateDeserializer;
 import ru.practicum.shareit.common.validation.OnCreate;
@@ -12,7 +14,8 @@ import ru.practicum.shareit.common.validation.OnUpdate;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BookingRequest {
     @NotNull(groups = OnCreate.class,
