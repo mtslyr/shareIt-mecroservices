@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.enums.State;
 import ru.practicum.shareit.booking.exception.BookingNotFoundException;
@@ -23,13 +24,11 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserStorage;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BookingServiceImpl implements BookingService {
 
     private final ItemServiceImpl itemService;
@@ -46,7 +45,7 @@ public class BookingServiceImpl implements BookingService {
         Item item = booking.getItem();
         User booker = booking.getBooker();
 
-        if (!(booker.getId().equals(userId) || item.getUserId().equals(userId))) {
+        if (!(booker.getId().equals(userId) || item.getOwner().getId().equals(userId))) {
             throw new AccessException();
         }
 
@@ -72,10 +71,10 @@ public class BookingServiceImpl implements BookingService {
                         userId, Instant.now());
             }
             case CURRENT -> {
-                result = bookingStorage.findCurrentBookingsByUserId(userId, Instant.now());
+                result = bookingStorage.findCurrentBookingsByOwnerId(userId, Instant.now());
             }
             case FUTURE -> {
-                result = bookingStorage.findFutureBookingsByUserId(userId, Instant.now());
+                result = bookingStorage.findFutureBookingsByOwnerId(userId, Instant.now());
             }
             case WAITING -> {
                 result = bookingStorage.findAllByBookerIdAndStatusOrderByCreatedAtAsc(
@@ -98,48 +97,44 @@ public class BookingServiceImpl implements BookingService {
         validateUserExists(userId);
 
         User booker = userStorage.findById(userId)
-                        .orElseThrow(() ->
-                                new UserNotFoundException(
-                                        UserNotFoundException.CriteriaField.ID,
-                                        userId.toString()));
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                UserNotFoundException.CriteriaField.ID,
+                                userId.toString()));
 
         Item item = itemStorage.findById(request.getItemId())
                 .orElseThrow(() -> new ItemNotFoundException(request.getItemId()));
 
-        LocalDateTime requestStart = request.getStartDate()
-                .atZone(ZoneOffset.UTC)
-                .toLocalDateTime();
+        Booking booking = mapper.toBooking(request);
 
-        LocalDateTime requestEnd = request.getEndDate()
-                .atZone(ZoneOffset.UTC)
-                .toLocalDateTime();
+        Instant nowInstant = Instant.now();
+        Instant startInstant = booking.getStartDate();
+        Instant endInstant = booking.getEndDate();
 
-        LocalDateTime now = Instant.now()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
+        log.info("Даты бронирования: start - {}", startInstant);
+        log.info("Даты бронирования: end - {}", endInstant);
 
-        if (requestStart.equals(requestEnd)
-            || requestEnd.isBefore(requestStart)
-            || (requestStart.isBefore(now) && requestEnd.isBefore(now))) {
+        if (startInstant.equals(endInstant) || endInstant.isBefore(startInstant)) {
             throw new InvalidBookingPeriodException();
         }
 
-        if (item.getUserId().equals(userId)) {
-            throw new OwnItemException();
+        if (startInstant.isBefore(nowInstant.minus(java.time.Duration.ofHours(12)))) {
+            throw new InvalidBookingPeriodException();
         }
 
+        if (item.getOwner().getId().equals(userId)) {
+            throw new OwnItemException();
+        }
         if (!item.getAvailable()) {
             throw new ItemNotAvailableException(item.getId());
         }
 
-        Booking booking = mapper.toBooking(request);
-        booking.setCreatedAt(Instant.now());
+        booking.setCreatedAt(nowInstant);
         booking.setStatus(Status.WAITING);
         booking.setBooker(booker);
         booking.setItem(item);
 
         Booking saved = bookingStorage.save(booking);
-
         return mapper.toResponse(saved);
     }
 
@@ -153,7 +148,7 @@ public class BookingServiceImpl implements BookingService {
                 return getAllForOwner(itemOwnerId);
             }
             case PAST -> {
-                result = bookingStorage.findAllByItemUserIdAndEndDateBeforeOrderByCreatedAtAsc(
+                result = bookingStorage.findAllByItemOwnerIdAndEndDateBeforeOrderByCreatedAtAsc(
                         itemOwnerId, Instant.now());
             }
             case CURRENT -> {
@@ -163,11 +158,11 @@ public class BookingServiceImpl implements BookingService {
                 result = bookingStorage.findFutureBookingsByItemOwner(itemOwnerId, Instant.now());
             }
             case WAITING -> {
-                result = bookingStorage.findAllByItemUserIdAndStatusOrderByCreatedAtAsc(
+                result = bookingStorage.findAllByItemOwnerIdAndStatusOrderByCreatedAtAsc(
                         itemOwnerId, Status.WAITING);
             }
             case REJECTED -> {
-                result = bookingStorage.findAllByItemUserIdAndStatusOrderByCreatedAtAsc(
+                result = bookingStorage.findAllByItemOwnerIdAndStatusOrderByCreatedAtAsc(
                         itemOwnerId, Status.REJECTED);
             }
             default -> throw new IllegalArgumentException("Необрабатываемый статус: " + state.name());
@@ -179,7 +174,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private List<BookingResponse> getAllForOwner(Long userId) {
-        return bookingStorage.findByItemUserIdEquals(userId)
+        return bookingStorage.findByItemOwnerIdEquals(userId)
                 .stream().map(mapper::toResponse)
                 .toList();
     }
@@ -189,9 +184,9 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingStorage.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
 
-        Long itemOfBookingId = booking.getItem().getId();
+        Item itemOfBooking = booking.getItem();
 
-        if (!itemService.isOwner(userId, itemOfBookingId)) {
+        if (!itemOfBooking.getOwner().getId().equals(userId)) {
             throw new AccessException();
         }
 

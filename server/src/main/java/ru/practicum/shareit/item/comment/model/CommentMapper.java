@@ -8,7 +8,7 @@ import ru.practicum.shareit.item.comment.model.dto.CommentResponse;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CommentMapper {
@@ -27,13 +27,13 @@ public interface CommentMapper {
         if (date == null) {
             return null;
         }
-        return date.toInstant(ZoneOffset.UTC);
+        return date.atZone(ZoneId.systemDefault()).toInstant();
     }
 
     default LocalDateTime map(Instant instant) {
         if (instant == null) {
             return null;
         }
-        return instant.atZone(ZoneOffset.UTC).toLocalDateTime();
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 }

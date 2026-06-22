@@ -17,6 +17,7 @@ public interface ItemMapper {
     Item toItem(ItemRequest request);
 
     @Mapping(target = "requestId", source = "request.id")
+    @Mapping(source = "owner.id", target = "ownerId")
     ItemResponse toResponse(Item item);
 
     ItemWithBookingDates toResponseWithDates(Item item);

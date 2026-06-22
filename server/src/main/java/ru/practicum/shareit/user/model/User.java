@@ -10,6 +10,7 @@ import lombok.experimental.FieldDefaults;
 @Table(name = "users")
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.common.serializing.DateDeserializer;
 import ru.practicum.shareit.common.validation.OnCreate;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString
 public class BookingRequest {
     @NotNull(groups = OnCreate.class,
             message = "ID вещи должен быть указан")

@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface ItemStorage extends JpaRepository<Item, Long> {
-    List<Item> findAllByUserId(Long userId);
+    List<Item> findAllByOwnerId(Long userId);
 
     Optional<Item> findById(Long itemId);
 

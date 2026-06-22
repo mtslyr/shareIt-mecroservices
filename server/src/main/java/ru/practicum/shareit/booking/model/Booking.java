@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
@@ -15,6 +16,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "bookings")
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString
 public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,5 +41,6 @@ public class Booking {
     Instant createdAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
     Status status;
 }

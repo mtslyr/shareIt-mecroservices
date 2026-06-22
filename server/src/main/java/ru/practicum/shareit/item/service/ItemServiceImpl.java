@@ -18,6 +18,7 @@ import ru.practicum.shareit.item.repository.ItemStorage;
 import ru.practicum.shareit.request.exception.RequestNotFountException;
 import ru.practicum.shareit.request.repository.RequestRepository;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserStorage;
 
 import java.util.ArrayList;
@@ -60,7 +61,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemWithBookingDates> getAllItemsByUserId(Long userId) {
-        Map<Long, ItemWithBookingDates> userItems = repository.findAllByUserId(userId)
+        Map<Long, ItemWithBookingDates> userItems = repository.findAllByOwnerId(userId)
                 .stream()
                 .map(mapper::toResponseWithDates)
                 .collect(Collectors.toMap(
@@ -113,7 +114,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemResponse save(Long userId, ItemRequest request) {
-        userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new UserNotFoundException(
                                 UserNotFoundException.CriteriaField.ID,
@@ -125,7 +126,7 @@ public class ItemServiceImpl implements ItemService {
         }
 
         Item item = mapper.toItem(request);
-        item.setUserId(userId);
+        item.setOwner(user);
 
         if (request.getRequestId() == null) {
             item.setRequest(null);
@@ -165,7 +166,7 @@ public class ItemServiceImpl implements ItemService {
                         new UserNotFoundException(
                                 UserNotFoundException.CriteriaField.ID,
                                 userId.toString()))
-                .getUserId().equals(userId);
+                .getOwner().equals(userId);
     }
 
     private void patchItem(Item item, ItemRequest request) {

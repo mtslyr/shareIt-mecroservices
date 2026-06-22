@@ -24,7 +24,7 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
             + "  AND b.startDate <= :now "
             + "  AND b.endDate > :now "
             + "ORDER BY b.createdAt ASC")
-    List<Booking> findCurrentBookingsByUserId(
+    List<Booking> findCurrentBookingsByOwnerId(
             @Param("userId") Long userId,
             @Param("now") Instant now);
 
@@ -32,20 +32,20 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
             + "WHERE b.booker.id = :userId "
             + " AND b.startDate > :now "
             + "ORDER BY b.createdAt ASC")
-    List<Booking> findFutureBookingsByUserId(
+    List<Booking> findFutureBookingsByOwnerId(
             @Param("userId") Long userId,
             @Param("now") Instant now);
 
     List<Booking> findAllByBookerIdAndStatusOrderByCreatedAtAsc(Long userId, Status status);
 
     // для владельца вещи
-    List<Booking> findByItemUserIdEquals(Long itemOwnerId);
+    List<Booking> findByItemOwnerIdEquals(Long itemOwnerId);
 
-    List<Booking> findAllByItemUserIdAndEndDateBeforeOrderByCreatedAtAsc(Long itemOwnerId, Instant before);
+    List<Booking> findAllByItemOwnerIdAndEndDateBeforeOrderByCreatedAtAsc(Long itemOwnerId, Instant before);
 
     @Query("SELECT b FROM Booking b "
             + "JOIN Item it "
-            + "WHERE it.userId = :itemOwnerId "
+            + "WHERE it.owner.id = :itemOwnerId "
             + "  AND b.startDate <= :now "
             + "  AND b.endDate > :now "
             + "ORDER BY b.createdAt ASC")
@@ -55,23 +55,23 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
 
     @Query("SELECT b FROM Booking b "
             + "JOIN Item it "
-            + "WHERE it.userId = :itemOwnerId "
+            + "WHERE it.owner.id = :itemOwnerId "
             + " AND b.startDate > :now "
             + "ORDER BY b.createdAt ASC")
     List<Booking> findFutureBookingsByItemOwner(
             @Param("itemOwnerId") Long itemOwnerId,
             @Param("now") Instant now);
 
-    List<Booking> findAllByItemUserIdAndStatusOrderByCreatedAtAsc(Long itemOwnerId, Status status);
+    List<Booking> findAllByItemOwnerIdAndStatusOrderByCreatedAtAsc(Long itemOwnerId, Status status);
 
     @Query(nativeQuery = true, value = """
     SELECT
         it.item_id AS itemId,
         MIN(CASE WHEN b.start_date >= NOW() THEN b.start_date END) AS nextBookingStart,
-        MAX(CASE WHEN b.end_date < (NOW() - INTERVAL '10' SECOND) THEN b.end_date END) AS lastBookingEnd
+        MAX(CASE WHEN b.end_date < (NOW() + INTERVAL '10' SECOND) THEN b.end_date END) AS lastBookingEnd
     FROM items it
     LEFT JOIN bookings b ON it.item_id = b.item_id
-    WHERE it.user_id = ?1
+    WHERE it.owner.id = ?1
     GROUP BY it.item_id;
     """)
     List<ItemBookingProjection> findAllByItemsWithBookingDates(Long userId);
@@ -80,13 +80,28 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
             SELECT
                 it.item_id AS itemId,
                 MIN(CASE WHEN b.start_date >= NOW() THEN b.start_date END) AS nextBookingStart,
-                MAX(CASE WHEN b.end_date < (NOW() - INTERVAL '10' SECOND) THEN b.end_date END) AS lastBookingEnd
+                MAX(CASE WHEN b.end_date < (NOW() + INTERVAL '10' SECOND) THEN b.end_date END) AS lastBookingEnd
             FROM items it
             LEFT JOIN bookings b ON it.item_id = b.item_id
-            WHERE it.item_id = ?1
+            WHERE it.item_id = ?1 and b.status = 'APPROVED'
             GROUP BY it.item_id;
             """)
     Optional<ItemBookingProjection> findItemWithBookingDates(Long itemId);
 
     Optional<Booking> findByBookerIdAndItemId(Long userId, Long itemId);
+
+    boolean existsByBookerIdAndItemIdAndStatus(Long userId,
+                                             Long itemId,
+                                             Status status);
+
+    Optional<Booking> findByItemIdAndBookerId(Long itemId, Long bookerId);
+
+    boolean existsByBookerIdAndItemIdAndStatusAndEndDateBefore(Long userId,
+                                                               Long itemId,
+                                                               Status status,
+                                                               Instant instant);
+
+    Optional<Booking> findFirstByBookerIdAndItemIdAndStatusOrderByEndDateDesc(Long userId,
+                                                                               Long itemId,
+                                                                               Status status);
 }

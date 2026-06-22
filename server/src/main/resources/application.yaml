@@ -21,7 +21,8 @@ spring:
 
 logging:
   level:
-    org.springframework.orm.jpa: INFO
+    ru.practicum.shareit: DEBUG
+    org.springframework.orm.jpa: WARN
     org.springframework.transaction: INFO
     org.springframework.transaction.interceptor: TRACE
     org.springframework.orm.jpa.JpaTransactionManager: DEBUG

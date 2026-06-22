@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.comment.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingStorage;
@@ -12,16 +13,15 @@ import ru.practicum.shareit.item.comment.model.CommentMapper;
 import ru.practicum.shareit.item.comment.model.dto.CommentRequest;
 import ru.practicum.shareit.item.comment.model.dto.CommentResponse;
 import ru.practicum.shareit.item.comment.repository.CommentStorage;
-import ru.practicum.shareit.item.exception.AccessException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemStorage;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserStorage;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -34,44 +34,55 @@ public class CommentServiceImpl implements CommentService {
     private final UserStorage userStorage;
     private final ItemStorage itemStorage;
 
+    @Transactional
     @Override
-    public CommentResponse addComment(Long userId, Long itemId, CommentRequest commentRequest) {
-        Comment comment = mapper.toComment(commentRequest);
+    public CommentResponse addComment(Long userId, Long itemId, CommentRequest request) {
+        validateComment(userId, itemId);
 
-        comment.setUser(userStorage.findById(userId)
+        User author = userStorage.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(
                         UserNotFoundException.CriteriaField.ID,
-                        userId.toString())));
+                        userId.toString()
+                ));
+        Item item = itemStorage.findById(itemId)
+                .orElseThrow(() -> new ItemNotFoundException(itemId));
 
-        comment.setItem(itemStorage.findById(itemId)
-                .orElseThrow(() -> new ItemNotFoundException(itemId)));
+        Comment comment = mapper.toComment(request);
+        comment.setUser(author);
+        comment.setItem(item);
 
         comment.setCreatedAt(Instant.now());
 
-        validateComment(userId, itemId);
-
-        Comment saved = commentStorage.save(comment);
-
-        return mapper.toResponse(saved);
+        Comment savedComment = commentStorage.save(comment);
+        return mapper.toResponse(savedComment);
     }
 
     private void validateComment(Long userId, Long itemId) {
-        Booking booking = bookingStorage.findByBookerIdAndItemId(userId, itemId)
-                .orElseThrow(AccessException::new);
+        boolean hasConfirmedBooking = bookingStorage.existsByBookerIdAndItemIdAndStatus(
+                userId, itemId, Status.APPROVED
+        );
 
-        if (!booking.getStatus().equals(Status.APPROVED)) {
-            throw new AccessException();
+        if (!hasConfirmedBooking) {
+            log.info("No confirmed bookings");
+            throw new CommentNotAvailable();
         }
 
-        LocalDateTime now = Instant.now()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
+        Booking bookingToComment = bookingStorage.findFirstByBookerIdAndItemIdAndStatusOrderByEndDateDesc(userId, itemId, Status.APPROVED)
+                .orElseThrow(() -> new CommentNotAvailable());
 
-        LocalDateTime bookingEndDate = booking.getEndDate()
-                .atZone(ZoneOffset.UTC)
-                .toLocalDateTime();
+        log.info("Found booking for validation: {}", bookingToComment);
 
-        if (bookingEndDate.isAfter(now)) {
+        Instant now = Instant.now();
+        Instant start = bookingToComment.getStartDate();
+
+        log.info("Проверяем что start[{}] is after now [{}]",
+                start.truncatedTo(ChronoUnit.SECONDS),
+                now.truncatedTo(ChronoUnit.SECONDS));
+
+
+        if (start.truncatedTo(ChronoUnit.SECONDS)
+                .isAfter(now.truncatedTo(ChronoUnit.SECONDS))) {
+            log.info("Бронирование еще не началось: start={}, now={}", start, now);
             throw new CommentNotAvailable();
         }
     }

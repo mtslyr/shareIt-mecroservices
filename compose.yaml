@@ -10,6 +10,7 @@ services:
         condition: service_started
     environment:
       - SHAREIT_SERVER_URL=http://server:9090
+      - TZ=Asia/Yekaterinburg
 
   server:
     build: server
@@ -24,6 +25,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shareit
       - SPRING_DATASOURCE_USERNAME=shareit
       - SPRING_DATASOURCE_PASSWORD=shareit
+      - TZ=Asia/Yekaterinburg
 
   db:
     image: postgres:16.1
