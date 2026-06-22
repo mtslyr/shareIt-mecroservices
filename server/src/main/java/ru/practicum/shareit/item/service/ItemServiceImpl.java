@@ -171,7 +171,9 @@ public class ItemServiceImpl implements ItemService {
                         new UserNotFoundException(
                                 UserNotFoundException.CriteriaField.ID,
                                 userId.toString()))
-                .getOwner().equals(userId);
+                .getOwner()
+                .getId()
+                .equals(userId);
     }
 
     private void patchItem(Item item, ItemRequest request) {
