@@ -27,9 +27,9 @@ public class ItemController {
 
     @GetMapping("/{id}")
     public ItemWithBookingDates getItemById(
-            @RequestHeader(value = X_SHARER_USER_ID) Long uerId,
+            @RequestHeader(value = X_SHARER_USER_ID) Long userId,
             @PathVariable("id") Long itemId) {
-        return itemService.getItemById(itemId);
+        return itemService.getItemById(itemId, userId);
     }
 
     @GetMapping("/search")

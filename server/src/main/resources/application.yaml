@@ -22,9 +22,10 @@ spring:
 logging:
   level:
     ru.practicum.shareit: DEBUG
-    org.springframework.orm.jpa: WARN
-    org.springframework.transaction: INFO
-    org.springframework.transaction.interceptor: TRACE
-    org.springframework.orm.jpa.JpaTransactionManager: DEBUG
+    org.springframework:
+      orm.jpa: WARN
+      transaction: WARN
+      transaction.interceptor: WARN
+    orm.jpa.JpaTransactionManager: WARN
 
     org.zalando.logbook: TRACE

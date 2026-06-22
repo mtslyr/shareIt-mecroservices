@@ -14,7 +14,7 @@ public interface ItemService {
 
     List<ItemWithBookingDates> getAllItemsByUserId(Long userId);
 
-    ItemWithBookingDates getItemById(Long itemId);
+    ItemWithBookingDates getItemById(Long itemId, Long userId);
 
     ItemResponse save(Long userId, ItemRequest request);
 

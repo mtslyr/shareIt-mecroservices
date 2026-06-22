@@ -95,7 +95,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemWithBookingDates getItemById(Long itemId) {
+    public ItemWithBookingDates getItemById(Long itemId, Long userId) {
         ItemBookingProjection projection = bookingStorage.findItemWithBookingDates(itemId)
                 .orElseThrow(() -> new ItemNotFoundException(itemId));
 
@@ -104,8 +104,13 @@ public class ItemServiceImpl implements ItemService {
 
         ItemWithBookingDates itemWithBookingDates = mapper.toResponseWithDates(item);
 
-        itemWithBookingDates.setNextBooking(projection.getNextBookingStart());
-        itemWithBookingDates.setLastBooking(projection.getLastBookingEnd());
+        if (item.getOwner().getId().equals(userId)) {
+            itemWithBookingDates.setNextBooking(projection.getNextBookingStart());
+            itemWithBookingDates.setLastBooking(projection.getLastBookingEnd());
+        } else {
+            itemWithBookingDates.setNextBooking(null);
+            itemWithBookingDates.setLastBooking(null);
+        }
 
         itemWithBookingDates.setComments(getCommentsForItem(item.getId()));
 
