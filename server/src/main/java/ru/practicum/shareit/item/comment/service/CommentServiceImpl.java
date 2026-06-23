@@ -21,7 +21,6 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserStorage;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +57,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private void validateComment(Long userId, Long itemId) {
-
         Booking bookingToComment = bookingStorage
                 .findFirstByBookerIdAndItemIdAndStatusOrderByEndDesc(
                         userId,
@@ -69,16 +67,12 @@ public class CommentServiceImpl implements CommentService {
         log.info("Found booking for validation: {}", bookingToComment);
 
         Instant now = Instant.now();
-        Instant start = bookingToComment.getStart();
+        Instant end = bookingToComment.getEnd();
 
-        log.info("Проверяем что start[{}] is after now [{}]",
-                start.truncatedTo(ChronoUnit.SECONDS),
-                now.truncatedTo(ChronoUnit.SECONDS));
+        log.info("Проверяем завершение бронирования: end={}, now={}", end, now);
 
-
-        if (start.truncatedTo(ChronoUnit.SECONDS)
-                .isAfter(now.truncatedTo(ChronoUnit.SECONDS))) {
-            log.info("Бронирование еще не началось: start={}, now={}", start, now);
+        if (end.isAfter(now)) {
+            log.info("Бронирование еще не завершено: end={}, now={}", end, now);
             throw new CommentNotAvailable();
         }
     }
