@@ -17,12 +17,12 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByBookerIdOrderByCreatedAtAsc(Long userId);
 
-    List<Booking> findAllByBookerIdAndEndDateBeforeOrderByCreatedAtAsc(Long userId, Instant before);
+    List<Booking> findAllByBookerIdAndEndBeforeOrderByCreatedAtAsc(Long userId, Instant before);
 
     @Query("SELECT b FROM Booking b "
             + "WHERE b.booker.id = :userId "
-            + "  AND b.startDate <= :now "
-            + "  AND b.endDate > :now "
+            + "  AND b.start <= :now "
+            + "  AND b.end > :now "
             + "ORDER BY b.createdAt ASC")
     List<Booking> findCurrentBookingsByOwnerId(
             @Param("userId") Long userId,
@@ -30,7 +30,7 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
 
     @Query("SELECT b FROM Booking b "
             + "WHERE b.booker.id = :userId "
-            + " AND b.startDate > :now "
+            + " AND b.start > :now "
             + "ORDER BY b.createdAt ASC")
     List<Booking> findFutureBookingsByOwnerId(
             @Param("userId") Long userId,
@@ -41,13 +41,13 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
     // для владельца вещи
     List<Booking> findByItemOwnerIdEquals(Long itemOwnerId);
 
-    List<Booking> findAllByItemOwnerIdAndEndDateBeforeOrderByCreatedAtAsc(Long itemOwnerId, Instant before);
+    List<Booking> findAllByItemOwnerIdAndEndBeforeOrderByCreatedAtAsc(Long itemOwnerId, Instant before);
 
     @Query("SELECT b FROM Booking b "
             + "JOIN Item it "
             + "WHERE it.owner.id = :itemOwnerId "
-            + "  AND b.startDate <= :now "
-            + "  AND b.endDate > :now "
+            + "  AND b.start <= :now "
+            + "  AND b.end > :now "
             + "ORDER BY b.createdAt ASC")
     List<Booking> findCurrentBookingsByItemOwner(
             @Param("itemOwnerId") Long itemOwnerId,
@@ -56,7 +56,7 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
     @Query("SELECT b FROM Booking b "
             + "JOIN Item it "
             + "WHERE it.owner.id = :itemOwnerId "
-            + " AND b.startDate > :now "
+            + " AND b.start > :now "
             + "ORDER BY b.createdAt ASC")
     List<Booking> findFutureBookingsByItemOwner(
             @Param("itemOwnerId") Long itemOwnerId,
@@ -83,7 +83,7 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
                 MAX(CASE WHEN b.end_date < (NOW() + INTERVAL '10' SECOND) THEN b.end_date END) AS lastBookingEnd
             FROM items it
             LEFT JOIN bookings b ON it.item_id = b.item_id
-            WHERE it.item_id = ?1 and b.status = 'APPROVED'
+            WHERE it.item_id = ?1
             GROUP BY it.item_id;
             """)
     Optional<ItemBookingProjection> findItemWithBookingDates(Long itemId);
@@ -96,12 +96,12 @@ public interface BookingStorage extends JpaRepository<Booking, Long> {
 
     Optional<Booking> findByItemIdAndBookerId(Long itemId, Long bookerId);
 
-    boolean existsByBookerIdAndItemIdAndStatusAndEndDateBefore(Long userId,
-                                                               Long itemId,
-                                                               Status status,
-                                                               Instant instant);
+    boolean existsByBookerIdAndItemIdAndStatusAndEndBefore(Long userId,
+                                                           Long itemId,
+                                                           Status status,
+                                                           Instant instant);
 
-    Optional<Booking> findFirstByBookerIdAndItemIdAndStatusOrderByEndDateDesc(Long userId,
-                                                                               Long itemId,
-                                                                               Status status);
+    Optional<Booking> findFirstByBookerIdAndItemIdAndStatusOrderByEndDesc(Long userId,
+                                                                          Long itemId,
+                                                                          Status status);
 }

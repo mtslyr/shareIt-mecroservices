@@ -1,9 +1,7 @@
 package ru.practicum.shareit.item.comment.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.common.validation.OnCreate;
 import ru.practicum.shareit.item.comment.model.dto.CommentRequest;
 import ru.practicum.shareit.item.comment.model.dto.CommentResponse;
 import ru.practicum.shareit.item.comment.service.CommentService;
@@ -19,7 +17,7 @@ public class CommentController {
     public CommentResponse postComment(
             @RequestHeader(X_SHARER_USER_ID) Long userId,
             @PathVariable("itemId") Long itemId,
-            @RequestBody @Validated(OnCreate.class) CommentRequest comment) {
+            @RequestBody CommentRequest comment) {
         return commentService.addComment(userId, itemId, comment);
     }
 }

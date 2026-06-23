@@ -67,7 +67,7 @@ public class BookingServiceImpl implements BookingService {
                 return getAll(userId);
             }
             case PAST -> {
-                result = bookingStorage.findAllByBookerIdAndEndDateBeforeOrderByCreatedAtAsc(
+                result = bookingStorage.findAllByBookerIdAndEndBeforeOrderByCreatedAtAsc(
                         userId, Instant.now());
             }
             case CURRENT -> {
@@ -108,8 +108,8 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = mapper.toBooking(request);
 
         Instant nowInstant = Instant.now();
-        Instant startInstant = booking.getStartDate();
-        Instant endInstant = booking.getEndDate();
+        Instant startInstant = booking.getStart();
+        Instant endInstant = booking.getEnd();
 
         log.info("Даты бронирования: start - {}", startInstant);
         log.info("Даты бронирования: end - {}", endInstant);
@@ -148,7 +148,7 @@ public class BookingServiceImpl implements BookingService {
                 return getAllForOwner(itemOwnerId);
             }
             case PAST -> {
-                result = bookingStorage.findAllByItemOwnerIdAndEndDateBeforeOrderByCreatedAtAsc(
+                result = bookingStorage.findAllByItemOwnerIdAndEndBeforeOrderByCreatedAtAsc(
                         itemOwnerId, Instant.now());
             }
             case CURRENT -> {

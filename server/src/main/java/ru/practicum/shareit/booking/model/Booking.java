@@ -32,10 +32,10 @@ public class Booking {
     Item item;
 
     @Column(name = "start_date")
-    Instant startDate;
+    Instant start;
 
     @Column(name = "end_date")
-    Instant endDate;
+    Instant end;
 
     @Column(name = "created_at")
     Instant createdAt;

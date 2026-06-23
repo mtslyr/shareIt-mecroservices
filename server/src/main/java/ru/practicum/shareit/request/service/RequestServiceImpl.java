@@ -57,7 +57,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<RequestResponse> getAllRequests(Long userId) {
-        List<Request> requests = repository.findAll();
+        List<Request> requests = repository.findByRequestorIdNot(userId);
 
         return requests.stream()
                 .map(mapper::toResponse)

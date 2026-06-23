@@ -1,10 +1,7 @@
 package ru.practicum.shareit.item.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.common.validation.OnCreate;
-import ru.practicum.shareit.common.validation.OnUpdate;
 import ru.practicum.shareit.item.model.dto.ItemRequest;
 import ru.practicum.shareit.item.model.dto.ItemResponse;
 import ru.practicum.shareit.item.model.dto.ItemWithBookingDates;
@@ -42,7 +39,7 @@ public class ItemController {
     @PostMapping
     public ItemResponse createItem(
             @RequestHeader(value = X_SHARER_USER_ID) Long userId,
-            @RequestBody @Validated(OnCreate.class) ItemRequest request) {
+            @RequestBody ItemRequest request) {
         return itemService.save(userId, request);
     }
 
@@ -50,7 +47,7 @@ public class ItemController {
     public ItemResponse patchItem(
             @PathVariable("id") Long itemId,
             @RequestHeader(value = X_SHARER_USER_ID) Long userId,
-            @RequestBody @Validated(OnUpdate.class) ItemRequest request) {
+            @RequestBody ItemRequest request) {
         return itemService.update(userId, itemId, request);
     }
 

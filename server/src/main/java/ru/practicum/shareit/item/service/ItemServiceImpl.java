@@ -49,7 +49,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemResponse> searchItems(String text) {
-        if (text.isEmpty()) {
+        if (text.isBlank()) {
             return Collections.emptyList();
         }
 
@@ -143,12 +143,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemResponse update(Long userId, Long itemId, ItemRequest request) {
-        if (!isOwner(userId, itemId)) {
-            throw new AccessException();
-        }
 
         Item i = repository.findById(itemId)
                 .orElseThrow(() -> new ItemNotFoundException(itemId));
+
+        if (!i.getOwner().getId().equals(userId)) {
+            throw new AccessException();
+        }
 
         patchItem(i, request);
 
@@ -168,9 +169,7 @@ public class ItemServiceImpl implements ItemService {
     public boolean isOwner(Long userId, Long itemId) {
         return repository.findById(itemId)
                 .orElseThrow(() ->
-                        new UserNotFoundException(
-                                UserNotFoundException.CriteriaField.ID,
-                                userId.toString()))
+                        new ItemNotFoundException(itemId))
                 .getOwner()
                 .getId()
                 .equals(userId);

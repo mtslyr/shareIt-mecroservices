@@ -19,8 +19,8 @@ public interface BookingMapper {
     Booking toBooking(BookingRequest request);
 
     @Mapping(source = "item", target = "item")
-    @Mapping(source = "startDate", target = "start")
-    @Mapping(source = "endDate", target = "end")
+    @Mapping(source = "start", target = "start")
+    @Mapping(source = "end", target = "end")
     @Mapping(source = "booker", target = "booker")
     BookingResponse toResponse(Booking booking);
 

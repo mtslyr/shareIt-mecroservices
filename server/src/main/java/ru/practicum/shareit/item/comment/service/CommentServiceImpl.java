@@ -58,22 +58,18 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private void validateComment(Long userId, Long itemId) {
-        boolean hasConfirmedBooking = bookingStorage.existsByBookerIdAndItemIdAndStatus(
-                userId, itemId, Status.APPROVED
-        );
 
-        if (!hasConfirmedBooking) {
-            log.info("No confirmed bookings");
-            throw new CommentNotAvailable();
-        }
-
-        Booking bookingToComment = bookingStorage.findFirstByBookerIdAndItemIdAndStatusOrderByEndDateDesc(userId, itemId, Status.APPROVED)
+        Booking bookingToComment = bookingStorage
+                .findFirstByBookerIdAndItemIdAndStatusOrderByEndDesc(
+                        userId,
+                        itemId,
+                        Status.APPROVED)
                 .orElseThrow(() -> new CommentNotAvailable());
 
         log.info("Found booking for validation: {}", bookingToComment);
 
         Instant now = Instant.now();
-        Instant start = bookingToComment.getStartDate();
+        Instant start = bookingToComment.getStart();
 
         log.info("Проверяем что start[{}] is after now [{}]",
                 start.truncatedTo(ChronoUnit.SECONDS),

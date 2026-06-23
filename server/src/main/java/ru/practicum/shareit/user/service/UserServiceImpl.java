@@ -38,14 +38,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse save(UserRequest request) {
-        validateUserEmail(request);
+        validateUserEmail(request, null);
         return mapper.toResponse(
                 userRepository.save(mapper.toUser(request)));
     }
 
     @Override
     public UserResponse update(Long userId, UserRequest request) {
-        validateUserEmail(request);
         User u = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new UserNotFoundException(
@@ -53,9 +52,13 @@ public class UserServiceImpl implements UserService {
                                 userId.toString()));
 
 
+        if (request.getEmail() != null) {
+            validateUserEmail(request, userId);
+        }
+
+
         patchUser(u, request);
-        return mapper.toResponse(
-                userRepository.save(u));
+        return mapper.toResponse(userRepository.save(u));
     }
 
     @Override
@@ -63,10 +66,12 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(userId);
     }
 
-    public void validateUserEmail(UserRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new EmailAlreadyUsedException(request.getEmail());
-        }
+    public void validateUserEmail(UserRequest request, Long userId) {
+        userRepository.findByEmail(request.getEmail()).ifPresent(existingUser -> {
+            if (!existingUser.getId().equals(userId)) {
+                throw new EmailAlreadyUsedException(request.getEmail());
+            }
+        });
     }
 
     private void patchUser(User user, UserRequest request) {

@@ -25,13 +25,11 @@ public class BookingRequest {
             message = "Дата начала должна быть указана")
     @JsonDeserialize(using = DateDeserializer.class)
     @JsonProperty("start")
-    LocalDateTime startDate;
+    LocalDateTime start;
 
     @NotNull(groups = {OnCreate.class, OnUpdate.class},
             message = "Дата окончания должна быть указана")
     @JsonDeserialize(using = DateDeserializer.class)
     @JsonProperty("end")
-    LocalDateTime endDate;
-
-
+    LocalDateTime end;
 }
